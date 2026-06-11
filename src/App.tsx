@@ -71,7 +71,10 @@ function App() {
   const goBack = () => {
     setReviewMode(false)
     clearReviewScreenParam()
-    setScreenIndex((current) => Math.max(current - 1, 0))
+    setScreenIndex((current) => {
+      if (current === 5) return 3
+      return Math.max(current - 1, 0)
+    })
   }
 
   const addRepeatedCard = () => {
@@ -103,7 +106,9 @@ function App() {
   }
 
   const handleNameContinue = () => {
-    setName((current) => current.trim() || 'Luan')
+    const trimmed = name.trim()
+    if (trimmed.length < 3) return
+    setName(trimmed)
     enterFlow(2)
   }
 
@@ -186,7 +191,7 @@ function App() {
                   className="phone-input phone-input--name"
                   value={name}
                   placeholder="Luan"
-                  onChange={(event) => setName(event.target.value)}
+                  onChange={(event) => setName(event.target.value.replace(/[0-9]/g, ''))}
                 />
               </div>
 
@@ -215,17 +220,16 @@ function App() {
                 <input
                   id="repeat-input"
                   className="phone-input phone-input--code"
-                  inputMode="numeric"
                   value={repeatInput}
                   placeholder="88"
-                  onChange={(event) => setRepeatInput(event.target.value.replace(/\D/g, ''))}
+                  onChange={(event) => setRepeatInput(event.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 5))}
                 />
 
                 <ActionButton variant="green" onClick={addRepeatedCard}>
                   ADICIONAR
                 </ActionButton>
 
-                <ChipGroup label="Suas repetidas:" items={repeatedCards} />
+                <ChipGroup label="Suas repetidas:" items={repeatedCards} onRemove={(item) => setRepeatedCards((cards) => cards.filter((c) => c !== item))} />
               </div>
 
               <ActionButton onClick={handleRepeatedContinue}>CONTINUAR</ActionButton>
@@ -253,17 +257,16 @@ function App() {
                 <input
                   id="missing-input"
                   className="phone-input phone-input--code"
-                  inputMode="numeric"
                   value={missingInput}
                   placeholder="12"
-                  onChange={(event) => setMissingInput(event.target.value.replace(/\D/g, ''))}
+                  onChange={(event) => setMissingInput(event.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 5))}
                 />
 
                 <ActionButton variant="green" onClick={addMissingCard}>
                   ADICIONAR
                 </ActionButton>
 
-                <ChipGroup label="Suas faltantes:" items={missingCards} />
+                <ChipGroup label="Suas faltantes:" items={missingCards} onRemove={(item) => setMissingCards((cards) => cards.filter((c) => c !== item))} />
               </div>
 
               <ActionButton ariaLabel="procurar trocas" onClick={handleSearch}>
@@ -504,7 +507,7 @@ function ActionButton({
   )
 }
 
-function ChipGroup({ label, items }: { label: string; items: string[] }) {
+function ChipGroup({ label, items, onRemove }: { label: string; items: string[]; onRemove: (item: string) => void }) {
   return (
     <div className="chip-group">
       <p>{label}</p>
@@ -512,7 +515,7 @@ function ChipGroup({ label, items }: { label: string; items: string[] }) {
         {items.map((item) => (
           <span key={item} className="chip">
             <span>{item}</span>
-            <span aria-hidden="true">×</span>
+            <button type="button" className="chip__remove" onClick={() => onRemove(item)} aria-label={`Remover ${item}`}>×</button>
           </span>
         ))}
       </div>
@@ -546,7 +549,7 @@ function AppLogo() {
     <div className="logo" aria-label="Happy Run">
       <span className="logo__happy">HAPPY</span>
       <span className="logo__run">RUN</span>
-      <span className="logo__sub">COPA DO MUNDO 2022</span>
+      <span className="logo__sub">COPA DO MUNDO 2026</span>
     </div>
   )
 }
